@@ -1,0 +1,21 @@
+{
+  "name": "csv-import-sandbox",
+  "version": "1.0.0",
+  "description": "CSV Import Sandbox with field mapping, validation, and downloadable output files",
+  "main": "backend/index.js",
+  "scripts": {
+    "start": "node backend/index.js",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd backend && npm run build",
+    "heroku-postbuild": "cd backend && npm install && npm run build"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.1"
+  },
+  "engines": {
+    "node": "16.x"
+  }
+}
