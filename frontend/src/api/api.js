@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: '/api' });
+// Use relative URL in production, full URL in development
+const baseURL = process.env.NODE_ENV === 'production' 
+  ? '/api' 
+  : 'http://localhost:4000/api';
+
+const api = axios.create({ baseURL });
 
 export const parseCsv = (file) => {
   const form = new FormData();
