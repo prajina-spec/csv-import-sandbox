@@ -1,46 +1,7 @@
-// In TransformationEngine.jsx - Add this import at the top of the file
-import mappingData from '../data/sampleMapping';
-
-// Then, in the appropriate transformation functions, add the mapping logic:
-
-// For RGP Membership Transformation, in the step3Data mapping section:
-// Replace:
-CASE
-  WHEN membershipTypeId like 'BILLME-30' then 7
-  WHEN membershipTypeId like 'BILLTO-23' then 3
-  else null
-END as membershipTypeId,
-
-// With:
-const mappedType = mappingData.lookupMembershipType(row.membershipTypeId);
-mappedType ? mappedType.id : null,
-
-// For RGP Passes Transformation, in the step2Data mapping section:
-// Replace:
-passTypeId: 0, // Will be mapped to actual ID later
-
-// With:
-passTypeId: mappingData.lookupPassType('Pass 1').id,
-
-// For RGP Certifications Transformation, in the step2Data mapping section:
-// Replace:
-certificationId: row.BELAY_CERTIFIED, // This will be mapped to actual certification ID later
-
-// With:
-certificationId: mappingData.lookupCertificationType(row.BELAY_CERTIFIED).id,
-
-// Similar updates for MBO transformations
-
-// For MBO Membership Transformation, update step3Data to use lookup:
-membershipTypeId: mappingData.lookupMembershipType(null, row.ContractName).id,
-
-// For MBO Passes Transformation, update step2Data:
-passTypeId: mappingData.lookupPassType(row.r_pricingoption).id,
-
-// For MBO Certifications, update the mapping:
-certificationId: mappingData.lookupCertificationType(row.TypeName).id,import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { v4 as uuidv4 } from 'uuid';
+import mappingData from '../data/sampleMapping';
 
 // Transformation engine translates the SQL transform logic to JavaScript
 const TransformationEngine = ({ 
@@ -413,14 +374,18 @@ const TransformationEngine = ({
       };
     });
     
-    // STEP 3: Link with customer IDs
+    // STEP 3: Link with customer IDs and apply mapping
     setStep(3);
     setProgress(75);
     
-    // This step would typically use the imported customer data
-    // For now, we'll simulate this by using the externalId references
     const step3Data = step2Data.map(membership => {
-      return membership; // In real implementation, would add customer IDs here
+      // Apply membership type mapping
+      const mappedType = mappingData.lookupMembershipType(membership.membershipTypeId);
+      if (mappedType) {
+        membership.membershipTypeId = mappedType.id;
+      }
+      
+      return membership; // In real implementation, would also add customer IDs here
     });
     
     // STEP 4: Final formatting
@@ -479,9 +444,12 @@ const TransformationEngine = ({
       // Create externalId
       const externalId = `${row.customer_id}_${locationName}`;
       
+      // Get mapped pass type
+      const mappedPassType = mappingData.lookupPassType('Pass 1');
+      
       return {
         id: null, // Will be assigned by the DB
-        passTypeId: 0, // Will be mapped to actual ID later
+        passTypeId: mappedPassType.id, // Using the mapped pass type ID
         ticketTypeId: null,
         orderId: 0,
         eventId: null,
@@ -649,7 +617,7 @@ const TransformationEngine = ({
     const step2Data = step1Data.map(row => {
       // Format balance (remove $ sign)
       let balance = row.Balance;
-      if (balance && balance.startsWith(')) {
+      if (balance && balance.startsWith('$')) {
         balance = balance.substring(1);
       }
       
@@ -711,10 +679,13 @@ const TransformationEngine = ({
       // Create externalId
       const externalId = `${row.CUSTOMER_ID}_${locationName}`;
       
+      // Map certification type
+      const mappedCertType = mappingData.lookupCertificationType(row.BELAY_CERTIFIED);
+      
       return {
         id: null, // Will be assigned by the DB
         customerId: null, // Will be filled in step 3
-        certificationId: row.BELAY_CERTIFIED, // This will be mapped to actual certification ID later
+        certificationId: mappedCertType.id, // Using the mapped certification type ID
         startEffectiveDate: null, // These would be input by the customer
         endEffectiveDate: null,
         documents: null,
@@ -1017,6 +988,9 @@ const TransformationEngine = ({
         nextBillDate = date.toISOString().split('T')[0];
       }
       
+      // Map membership type
+      const mappedType = mappingData.lookupMembershipType(null, row.ContractName);
+      
       return {
         id: null, // Will be assigned by the DB
         startEffectiveDate: row.StartDate,
@@ -1024,7 +998,7 @@ const TransformationEngine = ({
         cancelDate: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        membershipTypeId: row.ContractName, // This will be mapped to actual IDs later
+        membershipTypeId: mappedType ? mappedType.id : null, // Using mapped membership type
         discountPercentage: null,
         discountFlat: null,
         discountDescription: null,
@@ -1149,6 +1123,9 @@ const TransformationEngine = ({
     setProgress(75);
     
     const step3Data = step2Data.map(row => {
+      // Map membership type
+      const mappedType = mappingData.lookupMembershipType(null, row.Description);
+      
       return {
         id: null, // Will be assigned by the DB
         startEffectiveDate: row.ContractStartDate,
@@ -1156,7 +1133,7 @@ const TransformationEngine = ({
         cancelDate: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        membershipTypeId: row.Description, // This will be mapped to actual IDs later
+        membershipTypeId: mappedType ? mappedType.id : null, // Using mapped membership type
         discountPercentage: null,
         discountFlat: null,
         discountDescription: null,
@@ -1165,4 +1142,536 @@ const TransformationEngine = ({
         isActive: 1,
         isValid: 1,
         customerId: null, // Will be filled with actual customer ID later
-        assignedCustomerId:
+        assignedCustomerId: null, // Will be filled with actual customer ID later
+        price: row.PaymentAmount,
+        unitPrice: null,
+        previousMembership: null,
+        purchasedLocationId: locationName,
+        billCount: null,
+        billWeekDay: null,
+        billMonthDay: null,
+        billYearDay: null,
+        notes: null,
+        useCount: null,
+        billingType: 'DOP',
+        billingDayOfWeek: null,
+        billingDayOfMonth: null,
+        nextBillDate: null,
+        holdStartDate: null,
+        holdEndDate: null,
+        soldById: null,
+        updatedById: null,
+        externalId: row.externalId,
+        termsCheckedDT: null,
+        createdBy: null,
+        updatedBy: null,
+        guestPassQuantity: 0, // Will be updated in step 5
+        guestPassRestrictionInDays: null,
+        paymentCardId: null,
+        isRecurring: 0,
+        contractStartDate: row.ContractStartDate,
+        contractEndDate: row.ContractEndDate,
+        description: null,
+        
+        // Temporary field for linking, will be removed later
+        customer_mbsystemid_location: row.PayingClientID_location,
+      };
+    });
+    
+    // STEP 4: Store the transformed data
+    setStep(4);
+    setProgress(100);
+    
+    // Store the transformed non-recurring membership data
+    setTransformedData(prev => ({
+      ...prev,
+      nonRecurringMemberships: step3Data
+    }));
+  };
+
+  // MBO Passes Transformation
+  const mboPassesTransformation = async () => {
+    // Get the raw passes data
+    const rawPassesData = parseResults['Visits Remaining Report.csv']?.data || [];
+    
+    // STEP 1: Group by client and pricing option
+    setStep(1);
+    setProgress(33);
+    
+    const passGroups = {};
+    rawPassesData.forEach(row => {
+      const clientId = row['Client ID'];
+      const pricingOption = row['Pricing Option'];
+      
+      // Only include passes (filter by pricing option name)
+      if (pricingOption && pricingOption.toLowerCase().includes('pass')) {
+        const key = `${clientId}-${pricingOption}`;
+        
+        if (!passGroups[key]) {
+          passGroups[key] = {
+            r_clientid: clientId,
+            locationName,
+            MBSystemId_location: `${clientId}_${locationName}`,
+            r_pricingoption: pricingOption,
+            total: 0
+          };
+        }
+        
+        // Add remaining visits
+        passGroups[key].total += parseInt(row['Visits Remaining'] || 0);
+      }
+    });
+    
+    // Convert to array and filter out non-positive remaining visits
+    const step1Data = Object.values(passGroups).filter(pass => pass.total > 0);
+    
+    // STEP 2: Format data for our schema
+    setStep(2);
+    setProgress(66);
+    
+    const step2Data = step1Data.map(row => {
+      // Map pass type
+      const mappedPassType = mappingData.lookupPassType(row.r_pricingoption);
+      
+      return {
+        id: null, // Will be assigned by the DB
+        passTypeId: mappedPassType ? mappedPassType.id : null, // Using mapped pass type
+        orderId: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: 'active',
+        isActive: 1,
+        quantity: row.total,
+        purchasedQuantity: row.total,
+        customerId: null, // Will be filled with actual customer ID later
+        assignedCustomerId: null, // Will be filled with actual customer ID later
+        startEffectiveDate: new Date().toISOString(),
+        UUID: uuidv4(),
+        externalId: row.MBSystemId_location,
+        
+        // Include original data for reference
+        passType: row.r_pricingoption,
+        MBSystemId_location: row.MBSystemId_location
+      };
+    });
+    
+    // STEP 3: Link with customer data
+    setStep(3);
+    setProgress(100);
+    
+    // This step would typically use the imported customer data
+    // For now, we'll simulate this by using the externalId references
+    const step3Data = step2Data.map(pass => {
+      return pass; // In real implementation, would add customer IDs here
+    });
+    
+    // Store the transformed data
+    setTransformedData({
+      passes: step3Data
+    });
+  };
+
+  // MBO Waivers Transformation
+  const mboWaiversTransformation = async () => {
+    // Get the raw waiver data
+    // In a real implementation, this would process the _Documents.zip file
+    // For now, we'll simulate with the raw_waiver_locationName data
+    const rawWaiverData = []; // Placeholder for waiver data extraction
+    
+    // STEP 1: Extract MBSystemId
+    setStep(1);
+    setProgress(33);
+    
+    // Simulated waiver data 
+    const step1Data = rawWaiverData.length > 0 ? rawWaiverData : [
+      { MBSystemId: 'waiver_placeholder_1' },
+      { MBSystemId: 'waiver_placeholder_2' }
+    ];
+    
+    // STEP 2: Format data for our schema
+    setStep(2);
+    setProgress(66);
+    
+    const step2Data = step1Data.map(row => {
+      // Create externalId with location
+      const externalId = `${row.MBSystemId}_${locationName}`;
+      
+      return {
+        id: null, // Will be assigned by the DB
+        name: null, // Will be filled with customer name in step 3
+        address1: null, // Will be filled with customer address in step 3
+        address2: null,
+        city: null,
+        state: null,
+        postalCode: null,
+        primaryPhone: null,
+        email: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        customerId: null, // Will be filled with customer ID in step 3
+        envelopeId: null,
+        templateId: null,
+        url: null,
+        envelopeUrl: null,
+        status: 'signed',
+        documentTitle: 'MBO Waiver',
+        documents: JSON.stringify([{
+          url: "placeholder_url", // This would be filled with actual URL in a real implementation
+          name: "MindBody Waiver.pdf",
+          description: "none"
+        }]),
+        dependents: null,
+        startEffectiveDT: new Date().toISOString(),
+        endEffectiveDT: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(), // Default to 1 year expiration
+        signedDT: new Date().toISOString(),
+        source: null,
+        UUID: uuidv4(),
+        externalId,
+        createdBy: null,
+        updatedBy: null,
+        signedById: null // Will be filled in step 3
+      };
+    });
+    
+    // STEP 3: Link with customer data
+    setStep(3);
+    setProgress(100);
+    
+    // This step would typically use the imported customer data
+    // For now, we'll simulate this by using the externalId references
+    const step3Data = step2Data.map(waiver => {
+      return waiver; // In real implementation, would add customer details here
+    });
+    
+    // Store the transformed data
+    setTransformedData({
+      waivers: step3Data
+    });
+  };
+
+  // MBO Gift Cards Transformation
+  const mboGiftCardsTransformation = async () => {
+    // Get the raw gift card data
+    const rawGiftCardData = parseResults['GiftCardsBalances.csv']?.data || [];
+    
+    // STEP 1: Extract relevant fields
+    setStep(1);
+    setProgress(33);
+    
+    const step1Data = rawGiftCardData
+      .filter(row => parseFloat(row.CurrentBalance || 0) > 0)
+      .map(row => ({
+        DebitCardExtID: row.DebitCardExtID || '',
+        CurrentBalance: row.CurrentBalance || '',
+        DateIssued: row.DateIssued || '',
+        location: locationName
+      }));
+    
+    // STEP 2: Format data for our schema
+    setStep(2);
+    setProgress(66);
+    
+    const step2Data = step1Data.map(row => {
+      // Format balance (remove $ sign)
+      let balance = row.CurrentBalance;
+      if (balance && balance.startsWith('$')) {
+        balance = balance.substring(1);
+      }
+      
+      // Format issue date
+      let createdAt = new Date().toISOString();
+      if (row.DateIssued) {
+        const date = formatMboDate(row.DateIssued);
+        if (date) {
+          createdAt = date;
+        }
+      }
+      
+      return {
+        id: null, // Will be assigned by the DB
+        amount: balance,
+        balance: balance,
+        externalId: row.DebitCardExtID,
+        isActive: 1,
+        UUID: uuidv4(),
+        createdAt,
+        updatedAt: new Date().toISOString(),
+        message: 'Externally Imported Giftcard'
+      };
+    });
+    
+    // STEP 3: Final formatting
+    setStep(3);
+    setProgress(100);
+    
+    // Store the transformed data
+    setTransformedData({
+      giftCards: step2Data
+    });
+  };
+
+  // MBO Store Credit Transformation
+  const mboStoreCreditTransformation = async () => {
+    // Get the raw account balances data
+    const rawAccountData = parseResults['AccountBalances.csv']?.data || [];
+    
+    // STEP 1: Extract relevant fields
+    setStep(1);
+    setProgress(25);
+    
+    const step1Data = rawAccountData
+      .filter(row => parseFloat(row.balance || 0) > 0)
+      .map(row => ({
+        locationName,
+        externalid: row.MBsystemid || '',
+        balance: row.balance || ''
+      }));
+    
+    // STEP 2: Format store credit data
+    setStep(2);
+    setProgress(50);
+    
+    const step2Data = step1Data.map(row => {
+      // Create externalId with location
+      const externalCustomerId = `${row.externalid}_${locationName}`;
+      
+      return {
+        id: null, // Will be assigned by the DB
+        customerId: null, // Will be filled with actual customer ID in step 3
+        balance: row.balance,
+        totalIssued: row.balance,
+        totalUsed: 0,
+        UUID: uuidv4(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: null,
+        updatedBy: null,
+        externalCustomerId // Temporary field for linking
+      };
+    });
+    
+    // STEP 3: Link with customer data
+    setStep(3);
+    setProgress(75);
+    
+    // This step would typically use the imported customer data
+    // For now, we'll simulate this
+    const step3Data = step2Data.map(credit => {
+      return credit; // In real implementation, would add customer ID here
+    });
+    
+    // STEP 4: Create store credit transactions
+    setStep(4);
+    setProgress(100);
+    
+    // Create a transaction for each store credit entry
+    const transactionData = step3Data.map(credit => {
+      return {
+        id: null, // Will be assigned by the DB
+        storecreditId: null, // Would be filled with actual ID after import
+        customerId: credit.customerId,
+        transactionId: null,
+        giftcardId: null,
+        staffId: null,
+        pointsId: null,
+        locationId: 1,
+        currency: 'USD',
+        type: 'CREDIT',
+        amount: credit.balance,
+        source: 'STAFF_ADJUSTMENT',
+        reason: 'Credit imported from MBO',
+        createdAt: credit.createdAt,
+        updatedAt: credit.updatedAt,
+        createdBy: null,
+        updatedBy: null,
+        externalId: credit.externalCustomerId
+      };
+    });
+    
+    // Store the transformed data
+    setTransformedData({
+      storeCredit: step3Data,
+      storeCreditTransactions: transactionData
+    });
+  };
+
+  // Utility function to format dates from RGP
+  const formatRgpDate = (dateString) => {
+    if (!dateString) return new Date().toISOString();
+    
+    // If it's already a date object, format it
+    if (dateString instanceof Date) {
+      return dateString.toISOString();
+    }
+    
+    // Check if it's a date string with time component
+    if (dateString.includes(':')) {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+    }
+    
+    // Check for MM/DD/YYYY format
+    const dateParts = dateString.split('/');
+    if (dateParts.length === 3) {
+      const year = parseInt(dateParts[2]);
+      const month = parseInt(dateParts[0]) - 1; // JS months are 0-indexed
+      const day = parseInt(dateParts[1]);
+      
+      const date = new Date(year, month, day);
+      return date.toISOString();
+    }
+    
+    // Default fallback
+    return new Date().toISOString();
+  };
+
+  // Utility function to format dates from MBO
+  const formatMboDate = (dateString) => {
+    if (!dateString) return null;
+    
+    // If it's already a date object, format it
+    if (dateString instanceof Date) {
+      return dateString.toISOString();
+    }
+    
+    // Special case for "Contract Completed"
+    if (dateString === 'Contract Completed') {
+      return null;
+    }
+    
+    // Try to parse directly first
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+    
+    // Check for "Month DD YYYY" format (e.g. "January 15 2023")
+    const monthNameRegex = /^([a-zA-Z]+)\s+(\d{1,2})\s+(\d{4})$/;
+    const monthNameMatch = dateString.match(monthNameRegex);
+    if (monthNameMatch) {
+      const months = {
+        'january': 0, 'february': 1, 'march': 2, 'april': 3, 'may': 4, 'june': 5,
+        'july': 6, 'august': 7, 'september': 8, 'october': 9, 'november': 10, 'december': 11
+      };
+      
+      const month = months[monthNameMatch[1].toLowerCase()];
+      const day = parseInt(monthNameMatch[2]);
+      const year = parseInt(monthNameMatch[3]);
+      
+      const date = new Date(year, month, day);
+      return date.toISOString();
+    }
+    
+    // Check for MM/DD/YYYY format
+    const dateParts = dateString.split('/');
+    if (dateParts.length === 3) {
+      const year = parseInt(dateParts[2]);
+      const month = parseInt(dateParts[0]) - 1; // JS months are 0-indexed
+      const day = parseInt(dateParts[1]);
+      
+      const date = new Date(year, month, day);
+      return date.toISOString();
+    }
+    
+    // Try YYYY-MM-DD format
+    const isoDateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const isoMatch = dateString.match(isoDateRegex);
+    if (isoMatch) {
+      const year = parseInt(isoMatch[1]);
+      const month = parseInt(isoMatch[2]) - 1;
+      const day = parseInt(isoMatch[3]);
+      
+      const date = new Date(year, month, day);
+      return date.toISOString();
+    }
+    
+    // Default fallback
+    return null;
+  };
+
+  // Utility function to calculate days between two dates
+  const calculateDaysBetween = (startDateStr, endDateStr) => {
+    if (!startDateStr || !endDateStr) return 0;
+    
+    const startDate = new Date(formatRgpDate(startDateStr));
+    const endDate = new Date(formatRgpDate(endDateStr));
+    
+    const differenceInTime = endDate.getTime() - startDate.getTime();
+    const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
+    
+    return differenceInDays > 0 ? differenceInDays : 0;
+  };
+
+  // Render the transformation UI
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-6 text-center">Data Transformation</h2>
+      
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">
+            Processing {importType} data from {provider}
+          </h3>
+        </div>
+        
+        {loading ? (
+          <div className="my-6">
+            <div className="mb-2 flex justify-between items-center">
+              <span className="font-medium">Step {step}: {getStepName()}</span>
+              <span className="text-sm text-gray-600">{progress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </div>
+        ) : (
+          <div className="my-6">
+            {error ? (
+              <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+                <p className="font-bold">Error</p>
+                <p>{error}</p>
+              </div>
+            ) : (
+              <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+                <p className="font-bold">Transformation Complete</p>
+                <p>Successfully transformed {getTransformedCount()} records.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+  
+  // Helper to get step name based on current step
+  function getStepName() {
+    switch (step) {
+      case 1: return 'Extracting Data';
+      case 2: return 'Formatting Fields';
+      case 3: return 'Handling Relationships';
+      case 4: return 'Finalizing';
+      default: return 'Processing';
+    }
+  }
+  
+  // Helper to count transformed records
+  function getTransformedCount() {
+    let count = 0;
+    
+    // Count records in each transformed data category
+    Object.values(transformedData).forEach(dataArray => {
+      if (Array.isArray(dataArray)) {
+        count += dataArray.length;
+      }
+    });
+    
+    return count;
+  }
+};
+
+export default TransformationEngine;
