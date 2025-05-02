@@ -137,7 +137,7 @@ const ValidationChecklist = ({
         },
         { 
           id: 'noVariants', 
-          text: 'Re-iterate that we don't import variants or inventory.' 
+          text: 'We are unable to import variants or inventory.' 
         }
       ],
       giftCards: [
@@ -164,11 +164,11 @@ const ValidationChecklist = ({
         { 
           id: 'emails', 
           text: 'Make sure all email addresses are correct.',
-          hint: "There's no distinction between primary and secondary emails. If duplicates are found, they'll be moved to secondary." 
+          hint: "There\'s no distinction between primary and secondary emails. If duplicates are found, they'll be moved to secondary." 
         },
         { 
           id: 'barcodes', 
-          text: 'Review the barcodes to ensure they're correct.',
+          text: 'Review the barcodes to ensure they\'re correct.',
           hint: 'Just a heads-up — leading zeros might have been removed due to the CSV format.' 
         }
       ],
