@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import MappingInterface from './MappingInterface';
 
 const DataEditor = ({ 
   provider,
@@ -327,7 +328,7 @@ const DataEditor = ({
       return value ? 'Yes' : 'No';
     } else if (field === 'price' || field === 'amount' || field === 'balance') {
       // Currency fields
-      return typeof value === 'number' ? `${value.toFixed(2)}` : value;
+      return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
     } else if (field === 'status') {
       // Status field - capitalize
       return typeof value === 'string' ? value.charAt(0).toUpperCase() + value.slice(1) : value;
@@ -462,6 +463,16 @@ const DataEditor = ({
             </button>
           </div>
         </div>
+        
+        {/* Show mapping interface for certain import types */}
+        {['memberships', 'passes', 'certifications', 'products'].includes(importType) && (
+          <MappingInterface
+            provider={provider}
+            importType={importType}
+            transformedData={transformedData}
+            onUpdate={onUpdate}
+          />
+        )}
         
         {/* Search and filters */}
         <div className="mb-4 flex flex-wrap gap-2">
