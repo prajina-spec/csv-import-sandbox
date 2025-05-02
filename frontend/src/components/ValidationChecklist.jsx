@@ -430,4 +430,6 @@ const ValidationChecklist = ({
         return ['customerId', 'parentCustomerId'];
       case 'products':
         return ['name', 'price', 'manufacturer', 'revenueCategoryId'];
-      default:
+      default: 
+        return []; // Return an empty array or some default fields
+}
