@@ -432,4 +432,5 @@ const ValidationChecklist = ({
         return ['name', 'price', 'manufacturer', 'revenueCategoryId'];
       default: 
         return []; // Return an empty array or some default fields
-}
+    }
+  };
