@@ -434,3 +434,65 @@ const ValidationChecklist = ({
         return []; // Return an empty array or some default fields
     }
   };
+// Add the return statement for the component
+return (
+  <div className="max-w-4xl mx-auto p-6">
+    <h2 className="text-2xl font-bold mb-6 text-center">Validation Checklist</h2>
+    
+    {/* Rest of the component JSX here */}
+    <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
+      <h3 className="text-lg font-semibold mb-4">{importType} Validation</h3>
+      <p className="mb-6 text-gray-600">Please verify the following items:</p>
+      
+      <div className="space-y-4">
+        {checklistItems.map(item => (
+          <div key={item.id} className="border rounded-lg p-4">
+            <div className="flex items-start">
+              <input
+                type="checkbox"
+                id={item.id}
+                checked={checkedItems[item.id] || false}
+                onChange={() => handleCheckChange(item.id)}
+                className="mt-1 h-5 w-5 text-blue-600"
+              />
+              <div className="ml-3">
+                <label htmlFor={item.id} className="font-medium">{item.text}</label>
+                {item.hint && (
+                  <p className="mt-1 text-sm text-gray-500">{item.hint}</p>
+                )}
+              </div>
+            </div>
+            <div className="mt-2 ml-8">
+              <textarea
+                placeholder="Add notes (optional)"
+                value={notes[item.id] || ''}
+                onChange={(e) => handleNoteChange(item.id, e.target.value)}
+                className="w-full p-2 border rounded text-sm"
+                rows="2"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-6 flex justify-between items-center">
+        <div className="text-sm text-gray-600">
+          {formatItemCount()}
+        </div>
+        <button
+          onClick={() => onValidate(checkedItems, notes)}
+          disabled={!allChecked}
+          className={`px-4 py-2 rounded ${
+            allChecked ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          {allChecked ? 'Continue' : 'Complete All Checks to Continue'}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+}; // Closing brace for the component
+
+export default ValidationChecklist;
