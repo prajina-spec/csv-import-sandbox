@@ -16,8 +16,17 @@ export const parseCsv = (file) => {
 export const validateData = (dataType, rows) =>
   api.post('/upload/validate', { dataType, rows });
 
+export const updateValidatedData = (updatedRows) =>
+  api.post('/upload/update-validated', { updatedRows });
+
 export const importData = (dataType, rows) =>
   api.post('/upload/import', { dataType, rows });
 
 export const fetchMembershipTypes = () => 
   api.get('/upload/membership-types');
+
+export const downloadCleanCsv = () =>
+  api.post('/upload/export-clean', {}, { responseType: 'blob' });
+
+export const downloadErrorCsv = () =>
+  api.post('/upload/export-errors', {}, { responseType: 'blob' });
