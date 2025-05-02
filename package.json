@@ -1,21 +1,35 @@
 {
-  "name": "csv-import-sandbox",
-  "version": "1.0.0",
-  "description": "CSV Import Sandbox with field mapping, validation, and downloadable output files",
-  "main": "backend/index.js",
-  "scripts": {
-    "start": "node backend/index.js",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm start",
-    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "build": "cd backend && npm run build",
-    "heroku-postbuild": "cd backend && npm install && npm run build"
-  },
+  "name": "approach-csv-import",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
-    "concurrently": "^8.2.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-dropzone": "^14.2.3",
+    "papaparse": "^5.4.1",
+    "uuid": "^9.0.0"
   },
-  "engines": {
-    "node": "16.x"
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
