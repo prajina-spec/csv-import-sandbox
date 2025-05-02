@@ -29,7 +29,7 @@ const ValidationChecklist = ({
         },
         { 
           id: 'barcodes', 
-          text: 'Review the barcodes to ensure they're correct.',
+          text: "Review the barcodes to ensure they're correct.",
           hint: 'Just a heads-up — leading zeros might have been removed due to the CSV format.' 
         }
       ],
