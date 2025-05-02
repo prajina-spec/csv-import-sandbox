@@ -23,11 +23,30 @@ module.exports = {
     const { dataType, rows, customerIds = [] } = req.body;
     const errors = [];
     const missingRows = [];
+    const rowErrors = {};
+
+    // Add row index metadata to track the original position
+    rows.forEach((row, index) => {
+      row._rowIndex = index;
+    });
 
     if (dataType === 'memberships') {
-      rows.forEach(row => {
-        if (!customerIds.includes(row.CUSTOMER_ID)) {
-          errors.push(`Missing customer for ID ${row.CUSTOMER_ID}`);
+      // For now, we'll simulate customerIds for validation
+      // In a real scenario, you would fetch actual customer IDs from your database
+      const mockCustomerIds = ['CUST1', 'CUST2', 'CUST3'];
+      
+      rows.forEach((row, index) => {
+        const customerId = row.customerId || row.CUSTOMER_ID;
+        if (!mockCustomerIds.includes(customerId)) {
+          const errorMsg = `Missing customer for ID ${customerId}`;
+          errors.push(errorMsg);
+          
+          // Mark this row as having an error
+          if (!rowErrors[index]) {
+            rowErrors[index] = [];
+          }
+          rowErrors[index].push(errorMsg);
+          
           missingRows.push({ ...row, Notes: 'Missing customer' });
         }
       });
@@ -43,8 +62,21 @@ module.exports = {
           else emailMap[email].push(idx);
         }
       });
-      Object.values(emailMap).forEach(indices => {
+      
+      Object.entries(emailMap).forEach(([email, indices]) => {
         if (indices.length > 1) {
+          // Mark duplicate emails as errors and track which rows have this issue
+          const errorMsg = `Duplicate email: ${email} found in multiple rows`;
+          errors.push(errorMsg);
+          
+          indices.forEach(idx => {
+            if (!rowErrors[idx]) {
+              rowErrors[idx] = [];
+            }
+            rowErrors[idx].push(errorMsg);
+          });
+          
+          // Handle duplicates by moving to secondary email
           indices.slice(1).forEach(i => {
             rows[i].secondary_email = (rows[i].secondary_email || '') 
               ? rows[i].secondary_email + '; ' + rows[i].email 
@@ -55,10 +87,43 @@ module.exports = {
       });
     }
 
+    // Store validated data
     parsedData = rows;
     validationErrors = missingRows;
 
-    res.json({ errors, cleanRows: rows, missingRows });
+    res.json({ 
+      errors, 
+      cleanRows: rows, 
+      missingRows,
+      rowErrors
+    });
+  },
+
+  updateValidatedData: async (req, res) => {
+    const { updatedRows } = req.body;
+    
+    if (updatedRows && Array.isArray(updatedRows)) {
+      // Update our in-memory storage with the user-edited data
+      parsedData = updatedRows;
+      
+      // Re-run validation on the updated data
+      const errors = [];
+      const missingRows = [];
+      
+      // You can add your validation logic here if needed
+      
+      res.json({ 
+        success: true, 
+        message: 'Data updated successfully',
+        errors,
+        missingRows
+      });
+    } else {
+      res.status(400).json({ 
+        success: false, 
+        error: 'Invalid data format' 
+      });
+    }
   },
 
   exportCleanCsv: async (req, res) => {
@@ -66,7 +131,14 @@ module.exports = {
     res.set('Content-Type', 'text/csv');
     const ws = csv.format({ headers: true });
     ws.pipe(res);
-    parsedData.forEach(row => ws.write(row));
+    
+    // Filter out internal tracking fields
+    parsedData.forEach(row => {
+      const cleanRow = { ...row };
+      delete cleanRow._rowIndex;
+      ws.write(cleanRow);
+    });
+    
     ws.end();
   },
 

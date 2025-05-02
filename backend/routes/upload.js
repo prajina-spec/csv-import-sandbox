@@ -6,6 +6,7 @@ const upload = multer({ dest: 'uploads/' });
 
 router.post('/parse', upload.single('file'), importController.parseCsv);
 router.post('/validate', importController.validateData);
+router.post('/update-validated', importController.updateValidatedData);
 router.post('/export-clean', importController.exportCleanCsv);
 router.post('/export-errors', importController.exportErrorCsv);
 router.get('/membership-types', importController.getMembershipTypes);
