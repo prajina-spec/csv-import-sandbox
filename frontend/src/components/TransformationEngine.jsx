@@ -1,4 +1,44 @@
-import React, { useState, useEffect } from 'react';
+// In TransformationEngine.jsx - Add this import at the top of the file
+import mappingData from '../data/sampleMapping';
+
+// Then, in the appropriate transformation functions, add the mapping logic:
+
+// For RGP Membership Transformation, in the step3Data mapping section:
+// Replace:
+CASE
+  WHEN membershipTypeId like 'BILLME-30' then 7
+  WHEN membershipTypeId like 'BILLTO-23' then 3
+  else null
+END as membershipTypeId,
+
+// With:
+const mappedType = mappingData.lookupMembershipType(row.membershipTypeId);
+mappedType ? mappedType.id : null,
+
+// For RGP Passes Transformation, in the step2Data mapping section:
+// Replace:
+passTypeId: 0, // Will be mapped to actual ID later
+
+// With:
+passTypeId: mappingData.lookupPassType('Pass 1').id,
+
+// For RGP Certifications Transformation, in the step2Data mapping section:
+// Replace:
+certificationId: row.BELAY_CERTIFIED, // This will be mapped to actual certification ID later
+
+// With:
+certificationId: mappingData.lookupCertificationType(row.BELAY_CERTIFIED).id,
+
+// Similar updates for MBO transformations
+
+// For MBO Membership Transformation, update step3Data to use lookup:
+membershipTypeId: mappingData.lookupMembershipType(null, row.ContractName).id,
+
+// For MBO Passes Transformation, update step2Data:
+passTypeId: mappingData.lookupPassType(row.r_pricingoption).id,
+
+// For MBO Certifications, update the mapping:
+certificationId: mappingData.lookupCertificationType(row.TypeName).id,import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { v4 as uuidv4 } from 'uuid';
 
