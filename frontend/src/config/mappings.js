@@ -4,108 +4,112 @@ export const FIELD_MAPPINGS = {
       sourceField: 'firstname', 
       targetField: 'firstName', 
       required: true,
-      description: 'Customer\'s first name',
+      dataType: 'text',
       validations: [
-        { rule: 'required', message: 'First name is required' },
+        { type: 'required', message: 'First name is required' }
       ]
     },
     { 
       sourceField: 'lastname', 
       targetField: 'lastName', 
       required: true,
-      description: 'Customer\'s last name',
+      dataType: 'text',
       validations: [
-        { rule: 'required', message: 'Last name is required' },
+        { type: 'required', message: 'Last name is required' }
       ]
     },
     { 
       sourceField: 'email', 
       targetField: 'email', 
       required: true,
-      description: 'Primary email address for communication',
+      dataType: 'email',
       validations: [
-        { rule: 'required', message: 'Email is required' },
-        { rule: 'email', message: 'Must be a valid email address' }
+        { type: 'required', message: 'Email is required' },
+        { type: 'email', message: 'Invalid email format' }
       ]
     },
     { 
       sourceField: 'address1', 
       targetField: 'address1', 
       required: false,
-      description: 'Street address, line 1'
+      dataType: 'text'
     },
     { 
       sourceField: 'address2', 
       targetField: 'address2', 
       required: false,
-      description: 'Street address, line 2 (apt, suite, etc.)'
+      dataType: 'text'
     },
     { 
       sourceField: 'city', 
       targetField: 'city', 
       required: false,
-      description: 'City name'
+      dataType: 'text'
     },
     { 
       sourceField: 'state', 
       targetField: 'state', 
       required: false,
-      description: 'State or province'
+      dataType: 'text'
     },
     { 
       sourceField: 'zip', 
       targetField: 'postalCode', 
       required: false,
-      description: 'ZIP or postal code'
+      dataType: 'text'
     },
     { 
       sourceField: 'cell_phone', 
       targetField: 'mobile', 
       required: false,
-      description: 'Mobile phone number',
+      dataType: 'phone',
       validations: [
-        { rule: 'phone', message: 'Must be a valid phone number' }
+        { type: 'phone', message: 'Invalid phone number format' }
       ]
     },
     { 
       sourceField: 'bday', 
       targetField: 'birthdate', 
       required: false,
-      description: 'Date of birth (YYYY-MM-DD)',
-      normalize: 'date'
+      dataType: 'date',
+      validations: [
+        { type: 'date', message: 'Invalid date format' }
+      ]
     },
     { 
       sourceField: 'emergency_contact', 
       targetField: 'emergencyName', 
       required: false,
-      description: 'Emergency contact person name'
+      dataType: 'text'
     },
     { 
       sourceField: 'emergency_phone', 
       targetField: 'emergencyNumber', 
       required: false,
-      description: 'Emergency contact phone number'
+      dataType: 'phone',
+      validations: [
+        { type: 'phone', message: 'Invalid phone number format' }
+      ]
     },
     { 
       sourceField: 'country', 
       targetField: 'country', 
       required: false,
-      description: 'Country name'
+      dataType: 'text'
     },
     { 
       sourceField: 'barcode', 
       targetField: 'barcodeId', 
       required: false,
-      description: 'Barcode ID for membership card'
+      dataType: 'text'
     },
     { 
       sourceField: 'customer_id', 
       targetField: 'externalId', 
       required: true,
-      description: 'Unique customer ID from previous system',
+      dataType: 'text',
       validations: [
-        { rule: 'required', message: 'Customer ID is required' },
-        { rule: 'unique', message: 'Customer ID must be unique' }
+        { type: 'required', message: 'Customer ID is required' }
       ]
     }
   ],
@@ -114,108 +118,114 @@ export const FIELD_MAPPINGS = {
       sourceField: 'CUSTOMER_ID', 
       targetField: 'customerId', 
       required: true,
-      description: 'The unique customer ID this membership belongs to',
+      dataType: 'text',
       validations: [
-        { rule: 'required', message: 'Customer ID is required' },
-        { rule: 'existsInSystem', message: 'Customer ID must exist in the system' }
+        { type: 'required', message: 'Customer ID is required' }
       ]
     },
     { 
       sourceField: 'MEMBERSHIP_START_DATE', 
       targetField: 'startDate', 
       required: true,
-      description: 'Date when membership begins (YYYY-MM-DD)',
-      normalize: 'date',
+      dataType: 'date',
       validations: [
-        { rule: 'required', message: 'Start date is required' },
-        { rule: 'date', message: 'Must be a valid date' }
+        { type: 'required', message: 'Start date is required' },
+        { type: 'date', message: 'Invalid date format' }
       ]
     },
     { 
       sourceField: 'MEMBERSHIP_EXP_DATE', 
       targetField: 'endDate', 
       required: false,
-      description: 'Date when membership expires (YYYY-MM-DD)',
-      normalize: 'date',
+      dataType: 'date',
       validations: [
-        { rule: 'date', message: 'Must be a valid date' },
-        { rule: 'afterField:startDate', message: 'End date must be after start date' }
+        { type: 'date', message: 'Invalid date format' }
       ]
     },
     { 
       sourceField: 'MEMBERSHIP_FORM_OF_PAYMENT', 
       targetField: 'paymentMethod', 
       required: true,
-      description: 'How the customer pays for the membership',
+      dataType: 'text',
       validations: [
-        { rule: 'required', message: 'Payment method is required' },
-        { rule: 'oneOf:card,cash,ach,check', message: 'Must be a valid payment method' }
+        { type: 'required', message: 'Payment method is required' }
       ]
     },
     { 
       sourceField: 'current_status', 
       targetField: 'status', 
       required: true,
-      description: 'Current status of the membership',
+      dataType: 'text',
       validations: [
-        { rule: 'required', message: 'Status is required' },
-        { rule: 'oneOf:active,expired,cancelled,pending', message: 'Must be a valid status' }
+        { type: 'required', message: 'Status is required' }
       ]
     },
     { 
       sourceField: 'EFT_DUES_AMOUNT', 
       targetField: 'price', 
       required: true,
-      description: 'Monthly payment amount',
-      normalize: 'currency',
+      dataType: 'number',
       validations: [
-        { rule: 'required', message: 'Price is required' },
-        { rule: 'number', message: 'Must be a valid number' },
-        { rule: 'min:0', message: 'Price cannot be negative' }
+        { type: 'required', message: 'Price is required' },
+        { type: 'number', message: 'Price must be a number' },
+        { type: 'min', value: 0, message: 'Price cannot be negative' }
       ]
     }
   ]
 };
 
-// Data validators and normalizers
-export const validators = {
-  required: (value) => value !== undefined && value !== null && value !== '',
-  email: (value) => !value || /\S+@\S+\.\S+/.test(value),
-  phone: (value) => !value || /^[0-9()-.\s]+$/.test(value),
-  date: (value) => !value || !isNaN(Date.parse(value)),
-  number: (value) => !value || !isNaN(parseFloat(value)),
-  min: (min) => (value) => !value || parseFloat(value) >= min,
-  oneOf: (options) => (value) => !value || options.split(',').includes(value),
-  afterField: (field) => (value, allValues) => {
-    if (!value || !allValues[field]) return true;
-    return new Date(value) > new Date(allValues[field]);
+// Field type definitions for UI display and validation
+export const FIELD_TYPES = {
+  text: {
+    label: 'Text',
+    icon: 'text',
+    normalizer: 'normalizeText'
   },
-  unique: (value, allValues, fieldName, allRows) => {
-    if (!value) return true;
-    return allRows.filter(row => row[fieldName] === value).length === 1;
+  email: {
+    label: 'Email',
+    icon: 'email',
+    normalizer: 'normalizeEmail'
+  },
+  phone: {
+    label: 'Phone',
+    icon: 'phone',
+    normalizer: 'normalizePhone'
+  },
+  date: {
+    label: 'Date',
+    icon: 'calendar',
+    normalizer: 'normalizeDate'
+  },
+  number: {
+    label: 'Number',
+    icon: 'hash',
+    normalizer: 'normalizeNumber'
   }
 };
 
-// Data normalizers to transform input
-export const normalizers = {
-  date: (value) => {
-    if (!value) return value;
-    try {
-      const date = new Date(value);
-      if (isNaN(date.getTime())) return value;
-      return date.toISOString().split('T')[0]; // YYYY-MM-DD
-    } catch (e) {
-      return value;
-    }
-  },
-  currency: (value) => {
-    if (!value) return value;
-    const num = parseFloat(value.toString().replace(/[^0-9.-]+/g, ''));
-    return isNaN(num) ? value : num.toFixed(2);
-  },
-  phone: (value) => {
-    if (!value) return value;
-    // Remove non-numeric characters except + for country code
-    return value.toString().replace(/[^\d+]/g, '');
-  }
+// Data transformation templates
+export const DATA_TRANSFORMATIONS = {
+  customers: [
+    // Example transformation: capitalize first and last names
+    (row) => ({
+      firstName: row.firstName ? row.firstName.charAt(0).toUpperCase() + row.firstName.slice(1) : row.firstName,
+      lastName: row.lastName ? row.lastName.charAt(0).toUpperCase() + row.lastName.slice(1) : row.lastName
+    }),
+    // Example transformation: merge address fields
+    (row) => ({
+      fullAddress: row.address1 ? 
+        (row.address2 ? `${row.address1}, ${row.address2}` : row.address1) : ''
+    })
+  ],
+  memberships: [
+    // Example transformation: ensure status is lowercase
+    (row) => ({
+      status: row.status ? row.status.toLowerCase() : row.status
+    }),
+    // Example transformation: format price to 2 decimal places if it's a number
+    (row) => ({
+      price: row.price && !isNaN(parseFloat(row.price)) ? 
+        parseFloat(row.price).toFixed(2) : row.price
+    })
+  ]
 };
